@@ -26,7 +26,7 @@ builder.Services.AddAuthentication(options =>
         
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = false,
+        ValidateLifetime = true,
         ValidateIssuerSigningKey = true
     };
 });

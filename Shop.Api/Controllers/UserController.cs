@@ -11,7 +11,7 @@ using Shop.Api.Models.ViewModels;
 
 namespace Shop.Api.Controllers;
 
-[ApiController, Route("api/[controller]")]
+[ApiController, Route("api/[controller]/[action]")]
 public class UserController:ControllerBase
 {
     private readonly IConfiguration _configuration;
@@ -23,19 +23,19 @@ public class UserController:ControllerBase
         _userContext = userContext;
     }
  
-    [HttpPost, AllowAnonymous, Route("/register")]
-    public async Task<IActionResult> Register([FromBody] User user)
+    [HttpPost, AllowAnonymous]
+    public async Task<IActionResult> Register([FromBody] UserView userView)
     {
-        if (user.UserName != null && user.Password != null)
+        if (userView.UserName != null && userView.Password != null)
         {
             var userInDb = await _userContext.Users.FirstOrDefaultAsync(
-                u => u.UserName == user.UserName && u.Password == user.Password);
+                u => u.UserName == userView.UserName && u.Password == userView.Password);
             if (userInDb==null)
             {
                 await _userContext.Users.AddAsync(new User()
                 {
-                    UserName = user.UserName,
-                    Password = user.Password
+                    UserName = userView.UserName,
+                    Password = userView.Password
                 });
                 await _userContext.SaveChangesAsync();
                 return Ok();
@@ -45,10 +45,10 @@ public class UserController:ControllerBase
         return BadRequest("user was registered");
     }
 
-    [HttpPost, AllowAnonymous, Route("/createToken")]
+    [HttpPost, AllowAnonymous]
     public IActionResult CreateToken([FromBody] UserView user)
     {
-        if (user.Fullname != null && user.Password != null)
+        if (user.UserName != null && user.Password != null)
         {
             var issuer = _configuration["Jwt:Issuer"];
             var audience = _configuration["Jwt:Audience"];
@@ -60,8 +60,8 @@ public class UserController:ControllerBase
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim("Id", Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Fullname),
-                    new Claim(JwtRegisteredClaimNames.Email, user.Fullname),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                    new Claim(JwtRegisteredClaimNames.Email, user.UserName),
                     new Claim(JwtRegisteredClaimNames.Jti,
                         Guid.NewGuid().ToString())
                 }),
