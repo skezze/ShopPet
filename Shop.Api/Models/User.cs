@@ -1,8 +1,10 @@
+using Shop.Api.Models.ViewModels;
+
 namespace Shop.Api.Models;
 
-public class User
+public class User:UserView
 {
     public int Id {get; set;}
-    public string UserName { get; set; }
-    public string Password { get; set; }
+    public Role Role { get; set; }
+
 }

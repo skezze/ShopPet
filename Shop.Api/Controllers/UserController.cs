@@ -35,7 +35,8 @@ public class UserController:ControllerBase
                 await _userContext.Users.AddAsync(new User()
                 {
                     UserName = userView.UserName,
-                    Password = userView.Password
+                    Password = userView.Password,
+                    Role = Role.User
                 });
                 await _userContext.SaveChangesAsync();
                 return Ok();
@@ -46,10 +47,17 @@ public class UserController:ControllerBase
     }
 
     [HttpPost, AllowAnonymous]
-    public IActionResult CreateToken([FromBody] UserView user)
+    public IActionResult CreateToken([FromBody] UserView userView)
     {
-        if (user.UserName != null && user.Password != null)
+        if (userView.UserName != null && userView.Password != null)
         {
+           var userInDb = _userContext.Users.FirstOrDefault(x => x.UserName == userView.UserName && x.Password == userView.Password);
+           if (userInDb == null)
+           {
+               return NotFound();
+           }
+           
+           
             var issuer = _configuration["Jwt:Issuer"];
             var audience = _configuration["Jwt:Audience"];
             var key = Encoding.ASCII.GetBytes
@@ -59,13 +67,11 @@ public class UserController:ControllerBase
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("Id", Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Email, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti,
-                        Guid.NewGuid().ToString())
+                    new Claim("Id", userInDb.Id.ToString()),
+                    new Claim("UserName", userInDb.UserName),
+                    new Claim("Role", userInDb.Role.ToString())
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(5),
+                Expires = DateTime.UtcNow.AddMinutes(double.Parse(expireInMinutes)),
                 Issuer = issuer,
                 Audience = audience,
                 SigningCredentials = new SigningCredentials
@@ -79,6 +85,6 @@ public class UserController:ControllerBase
             return Ok(stringToken);
         }
 
-        return Unauthorized();
+        return NotFound();
     }
 }
