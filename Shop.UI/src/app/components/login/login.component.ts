@@ -23,11 +23,10 @@ export class LoginComponent implements OnDestroy {
     this.router.navigate(['/register']);
   }
   public login()
-  { 
-    this.loginSubscription = this.loginservice.login(JSON.stringify(new UserView("string","string"))).subscribe(
-      data => {
-        let accesString = data;
-        this.cookieService.set('accessToken', accesString.toString())
+  {    
+    this.loginSubscription = this.loginservice.login(new UserView("string1", "string")).subscribe(
+      data => {    
+        this.cookieService.set('accessToken', data.token)
       },
       error => console.log(error)
     );

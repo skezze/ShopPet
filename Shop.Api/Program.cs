@@ -30,6 +30,9 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true
     };
 });
+builder.Services.AddAuthorization(options=>
+    options.AddPolicy("Admin", policy=>policy.RequireClaim("Role","Admin"))
+    );
 
 builder.Services.AddControllers();
 

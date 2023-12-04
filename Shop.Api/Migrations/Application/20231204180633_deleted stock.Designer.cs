@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Shop.Api.Data;
 
 #nullable disable
 
-namespace Shop.Api.Migrations.ApplicationDb
+namespace Shop.Api.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231204180633_deleted stock")]
+    partial class deletedstock
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,21 +52,6 @@ namespace Shop.Api.Migrations.ApplicationDb
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Shop.Api.Models.OrderProduct", b =>
-                {
-                    b.Property<int>("OrderId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("OrderId", "ProductId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("OrderProducts");
-                });
-
             modelBuilder.Entity("Shop.Api.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -93,50 +81,6 @@ namespace Shop.Api.Migrations.ApplicationDb
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Shop.Api.Models.Stock", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("Stocks");
-                });
-
-            modelBuilder.Entity("Shop.Api.Models.OrderProduct", b =>
-                {
-                    b.HasOne("Shop.Api.Models.Order", "Order")
-                        .WithMany("OrderProducts")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Shop.Api.Models.Product", "Product")
-                        .WithMany("OrderProducts")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("Shop.Api.Models.Product", b =>
                 {
                     b.HasOne("Shop.Api.Models.Order", null)
@@ -144,29 +88,9 @@ namespace Shop.Api.Migrations.ApplicationDb
                         .HasForeignKey("OrderId");
                 });
 
-            modelBuilder.Entity("Shop.Api.Models.Stock", b =>
-                {
-                    b.HasOne("Shop.Api.Models.Product", "Products")
-                        .WithMany("Stocks")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Products");
-                });
-
             modelBuilder.Entity("Shop.Api.Models.Order", b =>
                 {
-                    b.Navigation("OrderProducts");
-
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("Shop.Api.Models.Product", b =>
-                {
-                    b.Navigation("OrderProducts");
-
-                    b.Navigation("Stocks");
                 });
 #pragma warning restore 612, 618
         }

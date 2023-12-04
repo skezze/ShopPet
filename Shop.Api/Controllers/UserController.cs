@@ -82,9 +82,31 @@ public class UserController:ControllerBase
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var jwtToken = tokenHandler.WriteToken(token);
             var stringToken = tokenHandler.WriteToken(token);
-            return Ok(stringToken);
+            return Ok(new { token = stringToken});
         }
 
         return NotFound();
+    }
+    [HttpPost, AllowAnonymous]
+    public async Task<IActionResult> AdminRegister([FromBody] UserView userView)
+    {
+        if (userView.UserName != null && userView.Password != null)
+        {
+            var userInDb = await _userContext.Users.FirstOrDefaultAsync(
+                u => u.UserName == userView.UserName && u.Password == userView.Password);
+            if (userInDb==null)
+            {
+                await _userContext.Users.AddAsync(new User()
+                {
+                    UserName = userView.UserName,
+                    Password = userView.Password,
+                    Role = Role.Admin
+                });
+                await _userContext.SaveChangesAsync();
+                return Ok();
+            }
+            
+        }
+        return BadRequest("user was registered");
     }
 }

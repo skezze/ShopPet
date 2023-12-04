@@ -8,6 +8,4 @@ public class Order
     public string Address2 { get; set; }
     public int PostCode { get; set; }
     public int FinalPrice { get; set; }
-
-    public ICollection<OrderProduct> OrderProducts { get; set; }
 }
