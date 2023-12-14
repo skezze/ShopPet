@@ -10,24 +10,22 @@ namespace Shop.Api.Controllers;
 [ApiController, Route("api/[controller]/[action]")]
 public class ProductController:ControllerBase
 {
-    private readonly UserDbContext _userDbContext;
-    private readonly ApplicationDbContext _applicationDbContext;
+    private readonly ApplicationDbContext _context;
 
-    public ProductController(UserDbContext userDbContext, ApplicationDbContext applicationDbContext)
+    public ProductController(ApplicationDbContext context)
     {
-        _userDbContext = userDbContext;
-        _applicationDbContext = applicationDbContext;
+        _context = context;
     }
     [AllowAnonymous,HttpGet]
     public IActionResult GetProducts()
     {
-        return Ok(_applicationDbContext.Products);
+        return Ok(_context.Products);
     }
 
     [AllowAnonymous,HttpGet("{id}")]
     public async Task<IActionResult> GetProductById( int id)
     {
-        var product = await _applicationDbContext.Products.FirstOrDefaultAsync(x => x.Id == id);
+        var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
         if (product!=null)
         {
             return Ok(product);   
@@ -36,18 +34,18 @@ public class ProductController:ControllerBase
         return NotFound();
     }
 
-    [Authorize(Policy = "Admin"),HttpPost("{title}/{description}/{price}")]
-    public async Task<IActionResult> CreateProduct(string title, string description, int price)
+    [Authorize(Policy = "Admin"),HttpPost]
+    public async Task<IActionResult> CreateProduct([FromBody]ProductView productView)
     {
-       if (title!=""&&description!=""&&price>0)
+       if (productView.Title!=""&&productView.Description!=""&&productView.Price>0)
         {
-            var product = await _applicationDbContext.Products.AddAsync(new Product()
+            var product = await _context.Products.AddAsync(new Product()
             {
-                Title = title,
-                Description = description,
-                Price = price,
+                Title = productView.Title,
+                Description = productView.Description,
+                Price = productView.Price,
                 });
-            await _applicationDbContext.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return Ok(product.Entity);
         }
         
@@ -57,29 +55,29 @@ public class ProductController:ControllerBase
     [HttpDelete, Authorize(Policy = "Admin"), HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
-        var product = await _applicationDbContext.Products.FirstOrDefaultAsync(x => x.Id == id);
+        var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
         if (product!=null)
         {
-            _applicationDbContext.Remove(product);
-            await _applicationDbContext.SaveChangesAsync();
+            _context.Remove(product);
+            await _context.SaveChangesAsync();
         }
 
         return Ok();
     }
     
-    [Authorize(Policy = "Admin"),HttpPut("{id}/{title}/{description}/{price}")]
-    public async Task<IActionResult> UpdateProduct(int id, string title, string description, int price)
+    [Authorize(Policy = "Admin"),HttpPut]
+    public async Task<IActionResult> UpdateProduct([FromBody]Product product)
     {
-        if (id>0&&title!=""&&description!=""&&price>0)
+        if (product.Id>0&&product.Title!=""&&product.Description!=""&&product.Price>0)
         {
-            var product = await _applicationDbContext.Products.FirstOrDefaultAsync(x=>x.Id==id);
-            if (product!=null)
+            var productInDb = await _context.Products.FirstOrDefaultAsync(x=>x.Id==product.Id);
+            if (productInDb!=null)
             {
-                product.Description = description;
-                product.Title = title;
-                product.Price = price;
-                await _applicationDbContext.SaveChangesAsync();
-                return Ok(product);
+                productInDb.Description = product.Description;
+                productInDb.Title = product.Title;
+                productInDb.Price = product.Price;
+                await _context.SaveChangesAsync();
+                return Ok(productInDb);
             }
            
         }

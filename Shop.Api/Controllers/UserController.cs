@@ -15,43 +15,66 @@ namespace Shop.Api.Controllers;
 public class UserController:ControllerBase
 {
     private readonly IConfiguration _configuration;
-    private readonly UserDbContext _userContext;
+    private readonly ApplicationDbContext _context;
 
-    public UserController(IConfiguration configuration, UserDbContext userContext)
+    public UserController(IConfiguration configuration, ApplicationDbContext context)
     {
         _configuration = configuration;
-        _userContext = userContext;
+        _context = context;
     }
  
     [HttpPost, AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] UserView userView)
     {
-        if (userView.UserName != null && userView.Password != null)
+        if (userView.UserName != String.Empty && userView.Password != String.Empty)
         {
-            var userInDb = await _userContext.Users.FirstOrDefaultAsync(
+            var userInDb = await _context.Users.FirstOrDefaultAsync(
                 u => u.UserName == userView.UserName && u.Password == userView.Password);
             if (userInDb==null)
             {
-                await _userContext.Users.AddAsync(new User()
+                await _context.Users.AddAsync(new User()
                 {
                     UserName = userView.UserName,
                     Password = userView.Password,
                     Role = Role.User
                 });
-                await _userContext.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 return Ok();
             }
             
         }
-        return BadRequest("user was registered");
+        return BadRequest(new {message= "user was registered"});
+    }
+    
+    [HttpPost, Authorize(Policy = "Admin")]
+    public async Task<IActionResult> RegisterForAdmin([FromBody] UserViewAdmin userView)
+    {
+        if (userView.UserName != String.Empty && userView.Password != String.Empty)
+        {
+            var userInDb = await _context.Users.FirstOrDefaultAsync(
+                u => u.UserName == userView.UserName && u.Password == userView.Password);
+            if (userInDb==null)
+            {
+                await _context.Users.AddAsync(new User()
+                {
+                    UserName = userView.UserName,
+                    Password = userView.Password,
+                    Role = userView.Role
+                });
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            
+        }
+        return BadRequest(new {message= "user was registered"});
     }
 
     [HttpPost, AllowAnonymous]
     public IActionResult CreateToken([FromBody] UserView userView)
     {
-        if (userView.UserName != null && userView.Password != null)
+        if (userView.UserName != String.Empty && userView.Password != String.Empty)
         {
-           var userInDb = _userContext.Users.FirstOrDefault(x => x.UserName == userView.UserName && x.Password == userView.Password);
+           var userInDb = _context.Users.FirstOrDefault(x => x.UserName == userView.UserName && x.Password == userView.Password);
            if (userInDb == null)
            {
                return NotFound();
@@ -87,26 +110,26 @@ public class UserController:ControllerBase
 
         return NotFound();
     }
-    [HttpPost, AllowAnonymous]
+    [HttpPost]
     public async Task<IActionResult> AdminRegister([FromBody] UserView userView)
     {
-        if (userView.UserName != null && userView.Password != null)
+        if (userView.UserName != string.Empty && userView.Password != string.Empty)
         {
-            var userInDb = await _userContext.Users.FirstOrDefaultAsync(
+            var userInDb = await _context.Users.FirstOrDefaultAsync(
                 u => u.UserName == userView.UserName && u.Password == userView.Password);
             if (userInDb==null)
             {
-                await _userContext.Users.AddAsync(new User()
+                await _context.Users.AddAsync(new User()
                 {
                     UserName = userView.UserName,
                     Password = userView.Password,
                     Role = Role.Admin
                 });
-                await _userContext.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 return Ok();
             }
             
         }
-        return BadRequest("user was registered");
+        return BadRequest(new{message = "user was registered"});
     }
 }

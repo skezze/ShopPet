@@ -34,7 +34,9 @@ builder.Services.AddAuthorization(options=>
     options.AddPolicy("Admin", policy=>policy.RequireClaim("Role","Admin"))
     );
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson(options =>
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -53,8 +55,6 @@ builder.Services.AddSwaggerGen(options =>
 });
     
 builder.Services.AddDbContext<ApplicationDbContext>(o=>o.
-    UseNpgsql(builder.Configuration.GetConnectionString("NpgConnection")));
-builder.Services.AddDbContext<UserDbContext>(o=>o.
     UseNpgsql(builder.Configuration.GetConnectionString("NpgConnection")));
 
 builder.Services.AddAuthorization();

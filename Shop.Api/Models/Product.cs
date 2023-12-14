@@ -2,7 +2,7 @@
 
 namespace Shop.Api.Models;
 
-public class Product:ProductView
+public class Product
 {
     public int Id { get; set; }
     public string Title { get; set; }
