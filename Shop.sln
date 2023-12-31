@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shop.Api", "Shop.Api\Shop.Api.csproj", "{227A27E1-13C6-4DEE-8B5B-060FB0340354}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityServer", "IdentityServer\IdentityServer.csproj", "{A9309981-2C2D-4C91-A816-BF9C0EFB7AF4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{227A27E1-13C6-4DEE-8B5B-060FB0340354}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{227A27E1-13C6-4DEE-8B5B-060FB0340354}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{227A27E1-13C6-4DEE-8B5B-060FB0340354}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9309981-2C2D-4C91-A816-BF9C0EFB7AF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9309981-2C2D-4C91-A816-BF9C0EFB7AF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9309981-2C2D-4C91-A816-BF9C0EFB7AF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9309981-2C2D-4C91-A816-BF9C0EFB7AF4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
