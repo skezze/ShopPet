@@ -8,30 +8,31 @@ using IdentityServer4;
 using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
-using IdentityServer.Models;
+using IdentityServerHost.Quickstart.UI;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Shop.Domain.Models;
 
-namespace IdentityServerHost.Quickstart.UI
+namespace Shop.IdentityServer.Quickstart.Account
 {
     [SecurityHeaders]
     [AllowAnonymous]
     public class ExternalController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly IEventService _events;
         private readonly ILogger<ExternalController> _logger;
 
         public ExternalController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IEventService events,
@@ -151,7 +152,7 @@ namespace IdentityServerHost.Quickstart.UI
             return Redirect(returnUrl);
         }
 
-        private async Task<(ApplicationUser user, string provider, string providerUserId, IEnumerable<Claim> claims)>
+        private async Task<(User user, string provider, string providerUserId, IEnumerable<Claim> claims)>
             FindUserFromExternalProviderAsync(AuthenticateResult result)
         {
             var externalUser = result.Principal;
@@ -176,7 +177,7 @@ namespace IdentityServerHost.Quickstart.UI
             return (user, provider, providerUserId, claims);
         }
 
-        private async Task<ApplicationUser> AutoProvisionUserAsync(string provider, string providerUserId,
+        private async Task<User> AutoProvisionUserAsync(string provider, string providerUserId,
             IEnumerable<Claim> claims)
         {
             // create a list of claims that we want to transfer into our store
@@ -217,7 +218,7 @@ namespace IdentityServerHost.Quickstart.UI
                 filtered.Add(new Claim(JwtClaimTypes.Email, email));
             }
 
-            var user = new ApplicationUser
+            var user = new User
             {
                 UserName = Guid.NewGuid().ToString(),
             };

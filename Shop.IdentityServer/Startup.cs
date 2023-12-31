@@ -3,8 +3,6 @@
 
 
 using IdentityServer4;
-using IdentityServer.Data;
-using IdentityServer.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -12,8 +10,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Shop.Data.DbContexts;
+using Shop.Domain.Models;
 
-namespace IdentityServer
+namespace Shop.IdentityServer
 {
     public class Startup
     {
@@ -33,7 +33,7 @@ namespace IdentityServer
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
@@ -50,7 +50,7 @@ namespace IdentityServer
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
                 .AddInMemoryClients(Config.Clients)
-                .AddAspNetIdentity<ApplicationUser>();
+                .AddAspNetIdentity<User>();
 
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddDeveloperSigningCredential();
