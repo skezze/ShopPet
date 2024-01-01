@@ -1,14 +1,7 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Shop.Api.Models.ViewModels;
-using Shop.Application;
 using Shop.Application.Services;
 using Shop.Data.DbContexts;
 using Shop.Domain.Models;
@@ -18,22 +11,11 @@ namespace Shop.Api.Controllers;
 [ApiController, Route("api/[controller]/[action]")]
 public class UserController:ControllerBase
 {
-    private readonly IConfiguration _configuration;
-    private readonly ApplicationDbContext _context;
-    private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly UserService _userService;
-
-    public UserController(IConfiguration configuration, ApplicationDbContext context, 
-        SignInManager<User> signInManager, UserManager<User>userManager, RoleManager<IdentityRole> roleManager,
-        UserService userService)
+    public UserController(UserManager<User>userManager, UserService userService, ApplicationDbContext dbContext)
     {
-        _configuration = configuration;
-        _context = context;
-        _signInManager = signInManager;
         _userManager = userManager;
-        _roleManager = roleManager;
         _userService = userService;
     }
  
@@ -45,22 +27,18 @@ public class UserController:ControllerBase
             var userInDb = await _userManager.FindByNameAsync(userView.UserName);
             if (userInDb==null)
             {
-                var identityResult = await _userManager.CreateAsync(new User()
+                var registeredUser = await _userService.Register(userInDb);
+                if (registeredUser!=null)
                 {
-                    UserName = userView.UserName,
-                    Email = userView.Email,
-                    EmailConfirmed = userView.EmailConfirmed
-                }, userView.Password);
-                if (identityResult.Succeeded)
-                {
-                    userInDb = await _userManager.FindByNameAsync(userView.UserName);
-                    if(await _userService.IsAddUserToRole(userInDb, new []{"user"}))
-                        return Ok();
+                    var result = await _userService.AddUserToRole(registeredUser, new string[]{"user"});
+                    if (result)
+                    {
+                        return Ok(registeredUser);
+                    }
                 }
-                return BadRequest(new {message= "data isn't correct"});
-                
+
+                return BadRequest(new { message = "register is failed" });
             }
-            
         }
         return BadRequest(new {message= "user was registered"});
     }
@@ -73,22 +51,18 @@ public class UserController:ControllerBase
             var userInDb = await _userManager.FindByNameAsync(userView.UserName);
             if (userInDb==null)
             {
-                var identityResult = await _userManager.CreateAsync(new User()
+                var registeredUser = await _userService.Register(userInDb);
+                if (registeredUser!=null)
                 {
-                    UserName = userView.UserName,
-                    Email = userView.Email,
-                    EmailConfirmed = userView.EmailConfirmed
-                }, userView.Password);
-                if (identityResult.Succeeded)
-                {
-                    userInDb = await _userManager.FindByNameAsync(userView.UserName);
-                    if(await _userService.IsAddUserToRole(userInDb, new []{"user", "admin"}))
-                        return Ok();
+                    var result = await _userService.AddUserToRole(registeredUser, new string[]{"user","admin"});
+                    if (result)
+                    {
+                        return Ok(registeredUser);
+                    }
                 }
-                return BadRequest(new {message= "data isn't correct"});
-                
+
+                return BadRequest(new { message = "register is failed" });
             }
-            
         }
         return BadRequest(new {message= "user was registered"});
     }

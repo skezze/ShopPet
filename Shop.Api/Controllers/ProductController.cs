@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Shop.Api.Models.ViewModels;
+using Shop.Application.Services;
 using Shop.Data.DbContexts;
 using Shop.Domain.Models;
 
@@ -10,78 +10,66 @@ namespace Shop.Api.Controllers;
 public class ProductController:ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly ProductService _productService;
 
-    public ProductController(ApplicationDbContext context)
+    public ProductController(ApplicationDbContext context, ProductService productService)
     {
         _context = context;
+        _productService = productService;
     }
     [AllowAnonymous,HttpGet]
     public IActionResult GetProducts()
     {
-        return Ok(_context.Products);
+       return Ok(_productService.GetProducts());
     }
 
     [AllowAnonymous,HttpGet("{id}")]
-    public async Task<IActionResult> GetProductById( int id)
+    public async Task<IActionResult> GetProductById(int id)
     {
-        var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
+        var product = await _productService.GetProductById(id);
+        
         if (product!=null)
         {
             return Ok(product);   
         }
 
-        return NotFound();
+        return NotFound(new{message="product id isn't finded"});
     }
 
     [Authorize(Policy = "Admin"),HttpPost]
     public async Task<IActionResult> CreateProduct([FromBody]ProductView productView)
     {
-       if (productView.Title!=""&&productView.Description!=""&&productView.Price>0)
+        var product = new Product()
         {
-            var product = await _context.Products.AddAsync(new Product()
-            {
-                Title = productView.Title,
-                Description = productView.Description,
-                Price = productView.Price,
-                });
-            await _context.SaveChangesAsync();
-            return Ok(product.Entity);
+            Title = productView.Title,
+            Description = productView.Description,
+            Price = productView.Price
+        };
+        var result = await _productService.CreateProduct(product);
+        if (result!=null)
+        {
+            return Ok(result);
         }
-        
-        return BadRequest();
+        return BadRequest(new{message="product isn't created"});
     }
 
     [HttpDelete, Authorize(Policy = "Admin"), HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
-        var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
-        if (product!=null)
-        {
-            _context.Remove(product);
-            await _context.SaveChangesAsync();
-        }
-
-        return Ok();
+        var result = await _productService.DeleteProduct(id);
+        return Ok(result);
     }
     
     [Authorize(Policy = "Admin"),HttpPut]
     public async Task<IActionResult> UpdateProduct([FromBody]Product product)
     {
-        if (product.Id>0&&product.Title!=""&&product.Description!=""&&product.Price>0)
+        var result = await _productService.UpdateProduct(product);
+        if (result==null)
         {
-            var productInDb = await _context.Products.FirstOrDefaultAsync(x=>x.Id==product.Id);
-            if (productInDb!=null)
-            {
-                productInDb.Description = product.Description;
-                productInDb.Title = product.Title;
-                productInDb.Price = product.Price;
-                await _context.SaveChangesAsync();
-                return Ok(productInDb);
-            }
-           
+            return BadRequest(new{message="update is failed"});
         }
-        
-        return BadRequest();
+
+        return Ok(result);
     }
     
 }

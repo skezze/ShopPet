@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Shop.Domain.Models;
 
 namespace Shop.Application.Services;
 

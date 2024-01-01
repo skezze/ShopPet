@@ -6,21 +6,16 @@ namespace Shop.Application.Services;
 
 public class UserService
 {
-    private readonly ApplicationDbContext _context;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
 
-    public UserService(ApplicationDbContext context, SignInManager<User> signInManager, 
-        UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+    public UserService(SignInManager<User> signInManager, UserManager<User> userManager)
     {
-        _context = context;
         _signInManager = signInManager;
         _userManager = userManager;
-        _roleManager = roleManager;
     }
 
-    public async Task<bool> IsLogin(User user)
+    public async Task<bool> Login(User user)
     {
         var id = await _userManager.GetUserIdAsync(user);
         if (id==string.Empty)
@@ -31,26 +26,23 @@ public class UserService
         return true;
     }
 
-    public async Task<bool> IsRegister(User user)
+    public async Task<User?> Register(User user)
     {
         var id = await _userManager.GetUserIdAsync(user);
         if (id!=string.Empty)
         {
-            return false;
+            return null;
         }
         await _signInManager.SignInAsync(user, isPersistent: true);
-        return true;
+        return user;
     }
-    public async Task<bool> IsAddUserToRole(User user,string[] roleNames)
+    public async Task<bool> AddUserToRole(User user,string[] roleNames)
     {
         var result = await _userManager.AddToRolesAsync(user, roleNames);
         if (result.Succeeded)
         {
             return true;
         }
-
         return false;
     }
-   
-    
 }

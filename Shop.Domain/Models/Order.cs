@@ -8,8 +8,8 @@ public class Order
     public int PostCode { get; set; }
     public int FinalPrice { get; set; }
     public User User { get; set; }
-    public int UserId { get; set; }
+    public string UserId { get; set; }
     public OrderStatus Status { get; set; }
     
-    public ICollection<OrderProduct> OrderProducts { get; set; }
+    public List<OrderProduct> OrderProducts { get; set; }
 }

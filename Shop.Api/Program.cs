@@ -5,13 +5,17 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Shop.Application.Services;
 using Shop.Data.DbContexts;
+using Shop.Domain.Models;
 using Swashbuckle.AspNetCore.Filters;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
-builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<UserService>()
+    .AddScoped<OrderService>()
+    .AddScoped<ProductService>()
+    .AddScoped<RoleService>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

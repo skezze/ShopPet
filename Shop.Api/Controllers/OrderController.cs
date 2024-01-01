@@ -2,140 +2,102 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shop.Api.Models.ViewModels;
+using Shop.Application.Services;
 using Shop.Data.DbContexts;
 using Shop.Domain.Models;
+using Shop.Domain.Models.ViewModels;
 
 namespace Shop.Api.Controllers;
 [ApiController,Route("api/[controller]/[action]"),Authorize]
 public class OrderController:ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly OrderService _orderService;
 
-    public OrderController(ApplicationDbContext context)
+    public OrderController(ApplicationDbContext context, OrderService orderService)
     {
         _context = context;
+        _orderService = orderService;
     }
 
     [HttpGet]
     public IActionResult GetOrders()
     {
-        
-        return Ok(_context.Orders);
+        var orders = _orderService.GetOrders();
+        return Ok(orders);
     }
     
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrderById(int id)
     {
-        if (id > 0)
+        var result = await _orderService.GetOrderById(id);
+        if (result==null)
         {
-           var order = await _context.Orders
-               .Include(x=>x.User)
-               .Include(x=>x.OrderProducts)
-               .FirstOrDefaultAsync(x => x.Id == id);
-           if (order!=null)
-           {
-               return Ok(order);
-           }
-           
+            return BadRequest(new { message = "product isn't finded" });
         }
 
-        return BadRequest(new {message = "it is not valid id, or order is not exists"});
-
+        return Ok(result);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody]OrderView orderView)
+    public async Task<IActionResult> CreateOrder([FromBody] OrderView orderView)
     {
-        if (orderView.UserId!=string.Empty && orderView.ProductIds.Count>0 && orderView.Address2!= string.Empty
-            && orderView.Adress1!= string.Empty && orderView.PostCode>0)
+         var orderProducts = async () =>
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == orderView.UserId);
-            
-            if (user==null)
+            var orderProducts = new List<OrderProduct>();
+            foreach (var productId in orderView.ProductIds)
             {
-                return BadRequest(new {message = "user not exist"});
+                var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == productId);
+                if (product != null)
+                {
+                    var orderProduct = new OrderProduct
+                    {
+                        // order - ваш созданный заказ
+                        Product = product   // текущий продукт
+                    };
+                    orderProducts.Add(orderProduct);
+                }
             }
-            
-            var finalPrice = async () =>
-            {
-                int price = 0;
-                foreach (var productId in orderView.ProductIds)
-                {
-                    var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == productId);
-                    if (product!=null)
-                    {
-                        price += product.Price;
-                    }
-                }
-
-                return price;
-            };
-            var orderproducts = async () =>
-            {
-                var orderProducts = new List<OrderProduct>();
-                foreach (var productId in orderView.ProductIds)
-                {
-                    var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == productId);
-                    if (product != null)
-                    {
-                        var orderProduct = new OrderProduct
-                        {
-                                  // order - ваш созданный заказ
-                            Product = product   // текущий продукт
-                        };
-                        orderProducts.Add(orderProduct);
-                    }
-                }
-                return orderProducts;
-            };
-
-            var order = new Order()
-            {
-                User = user,
-                Address2 = orderView.Address2,
-                Adress1 = orderView.Adress1,
-                FinalPrice = await finalPrice(),
-                PostCode = orderView.PostCode,
-                OrderProducts = await orderproducts(),
-                Status = OrderStatus.InProcess
-            };
-            await _context.Orders.AddAsync(order);
-            await _context.SaveChangesAsync();
-            return Ok(order);
+            return orderProducts;
+        };
+        ;
+        var order = new Order
+        {
+            Adress1 = orderView.Adress1,
+            Address2 = orderView.Address2,
+            PostCode = orderView.PostCode,
+            UserId = orderView.UserId,
+            OrderProducts = await orderProducts()
+        };
+        var result = await _orderService.CreateOrder(order);
+        if (result==null)
+        {
+            return BadRequest(new { message = "order isn't created" });
         }
 
-        return BadRequest(new { message = "Order data isn't valid" });
+        return Ok(result);
     }
 
     [HttpPut, Authorize(Policy = "Admin"),Route("{orderId}/{orderStatus}")]
     public async Task<IActionResult> UpdateOrderStatus( int orderId, OrderStatus orderStatus)
     {
-        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
-        if (order==null)
+        var result = await _orderService.UpdateOrderStatus(orderId, orderStatus);
+        if (result==null)
         {
-            return BadRequest(new {message = "order isn`t exist"});
+            return BadRequest(new { message = "error changing orderstatus" });
         }
-
-        if (!Enum.IsDefined(typeof(OrderStatus),orderStatus))
-        {
-            return BadRequest(new {message = "order status isn`t exist"});
-        }
-
-        order.Status = orderStatus;
-        await _context.SaveChangesAsync();
-        return Ok(order);
+        return Ok(result);
     }
 
     [HttpDelete, Authorize(Policy = "Admin"), Route("{orderId}")]
     public async Task<IActionResult> Delete(int orderId)
     {
-        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
-        if (order==null)
+        var result = await _orderService.Delete(orderId);
+        if (result)
         {
-            return BadRequest(new {message = "order isn`t exist"});
+            return Ok(new { message = "order deleted" });
         }
 
-        _context.Orders.Remove(order);
-        return Ok(new {message = "removed"});
+        return BadRequest(new { message = "order didn't deleted" });
     }
 }
