@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Shop.Api.Data;
-using Shop.Api.Models;
 using Shop.Api.Models.ViewModels;
+using Shop.Data.DbContexts;
+using Shop.Domain.Models;
 
 namespace Shop.Api.Controllers;
 [ApiController,Route("api/[controller]/[action]"),Authorize]
@@ -46,7 +46,7 @@ public class OrderController:ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody]OrderView orderView)
     {
-        if (orderView.UserId>0 && orderView.ProductIds.Count>0 && orderView.Address2!= string.Empty
+        if (orderView.UserId!=string.Empty && orderView.ProductIds.Count>0 && orderView.Address2!= string.Empty
             && orderView.Adress1!= string.Empty && orderView.PostCode>0)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == orderView.UserId);

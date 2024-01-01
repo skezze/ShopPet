@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Extensions;
-using Shop.Api.Data;
-using Shop.Api.Models;
 using Shop.Api.Models.ViewModels;
+using Shop.Data.DbContexts;
+using Shop.Domain.Models;
 
 namespace Shop.Api.Controllers;
 [ApiController, Route("api/[controller]/[action]")]

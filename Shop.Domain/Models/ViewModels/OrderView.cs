@@ -6,5 +6,5 @@ public class OrderView
     public string Adress1 { get; set; }
     public string Address2 { get; set; }
     public int PostCode { get; set; }
-    public int UserId { get; set; }
+    public string UserId { get; set; }
 }

@@ -22,11 +22,12 @@ namespace Shop.IdentityServer
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(connectionString));
+                options.UseNpgsql(connectionString));
 
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddRoles<IdentityRole>();
 
             using (var serviceProvider = services.BuildServiceProvider())
             {
@@ -104,6 +105,37 @@ namespace Shop.IdentityServer
                     {
                         Log.Debug("bob already exists");
                     }
+                }
+                var roleManager = serviceProvider.GetService<RoleManager<IdentityRole>>();
+                var userRole = roleManager.FindByNameAsync("user").Result;
+                if (userRole == null)
+                {
+                    userRole = new IdentityRole("user");
+                    var result = roleManager.CreateAsync(userRole).Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception(result.Errors.First().Description);
+                    }
+                    Log.Debug("user role created");
+                }
+                else
+                {
+                    Log.Debug("user role already exists");
+                }
+                var adminRole = roleManager.FindByNameAsync("admin").Result;
+                if (adminRole == null)
+                {
+                    adminRole = new IdentityRole("admin");
+                    var result = roleManager.CreateAsync(adminRole).Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception(result.Errors.First().Description);
+                    }
+                    Log.Debug("admin role created");
+                }
+                else
+                {
+                    Log.Debug("admin role already exists");
                 }
             }
         }

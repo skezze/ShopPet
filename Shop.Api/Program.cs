@@ -3,13 +3,15 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Shop.Api.Data;
+using Shop.Application.Services;
+using Shop.Data.DbContexts;
 using Swashbuckle.AspNetCore.Filters;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+builder.Services.AddScoped<UserService>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

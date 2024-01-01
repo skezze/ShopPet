@@ -1,6 +1,6 @@
-namespace Shop.Api.Models.ViewModels;
+﻿namespace Shop.Api.Models.ViewModels;
 
-public class UserView
+public class UserViewAdmin
 {
     public string UserName { get; set; }
     public string Password { get; set; }

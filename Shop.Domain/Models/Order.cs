@@ -1,6 +1,4 @@
-﻿using Shop.Api.Models;
-
-namespace Shop.Domain.Models;
+﻿namespace Shop.Domain.Models;
 
 public class Order
 {

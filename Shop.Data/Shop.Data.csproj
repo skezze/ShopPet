@@ -13,7 +13,6 @@
 
 
     <ItemGroup>
-      <ProjectReference Include="..\Shop.Api\Shop.Api.csproj" />
       <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />
     </ItemGroup>
 
